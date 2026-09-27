@@ -1,6 +1,6 @@
 /**
  * PSİKOLOG ŞEYMA MERİÇ ABUL - MODERN JAVASCRIPT
- * Erişilebilir, Bağımlılıksız (Vanilla ES6), Hızlı ve Güvenilir
+ * Erişilebilir, Bağımlılıksız (Vanilla ES6), Hızlı ve Sezgisel
  */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -8,10 +8,11 @@ document.addEventListener('DOMContentLoaded', () => {
   initFaqAccordion();
   initForms();
   initHeaderScroll();
+  initPhoneFormatting();
 });
 
 /**
- * 1. Mobil Navigasyon ve Menü Çekmecesi
+ * 1. Mobil Navigasyon ve Menü Çekmecesi (Erişilebilir Focus Trap)
  */
 function initMobileNav() {
   const toggleBtn = document.querySelector('.nav-toggle');
@@ -41,7 +42,6 @@ function initMobileNav() {
   if (closeBtn) closeBtn.addEventListener('click', closeMenu);
   if (backdrop) backdrop.addEventListener('click', closeMenu);
 
-  // Esc tuşu ile kapatma
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && drawer.classList.contains('is-open')) {
       closeMenu();
@@ -65,7 +65,6 @@ function initFaqAccordion() {
     trigger.addEventListener('click', () => {
       const isOpen = item.classList.contains('is-active');
 
-      // Opsiyonel: Diğerlerini kapatıp sadece tıklananı açmak isterseniz
       faqItems.forEach((other) => {
         if (other !== item) {
           other.classList.remove('is-active');
@@ -86,7 +85,28 @@ function initFaqAccordion() {
 }
 
 /**
- * 3. Form Doğrulama, Durum Yönetimi & Çift Gönderim Koruması
+ * 3. Telefon Giriş Formatlama (05XX XXX XX XX)
+ */
+function initPhoneFormatting() {
+  const phoneInputs = document.querySelectorAll('input[type="tel"]');
+  phoneInputs.forEach((input) => {
+    input.addEventListener('input', (e) => {
+      let x = e.target.value.replace(/\D/g, '').match(/(\d{0,4})(\d{0,3})(\d{0,2})(\d{0,2})/);
+      if (!x) return;
+      
+      let formatted = '';
+      if (x[1]) formatted = x[1];
+      if (x[2]) formatted += ' ' + x[2];
+      if (x[3]) formatted += ' ' + x[3];
+      if (x[4]) formatted += ' ' + x[4];
+      
+      e.target.value = formatted.trim();
+    });
+  });
+}
+
+/**
+ * 4. Form Doğrulama & Çift Gönderim Koruması
  */
 function initForms() {
   const forms = document.querySelectorAll('.validated-form');
@@ -96,17 +116,14 @@ function initForms() {
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
 
-      // Form elemanları
       const nameInput = form.querySelector('[name="name"]');
       const phoneInput = form.querySelector('[name="phone"]');
       const serviceSelect = form.querySelector('[name="service"]');
-      const messageInput = form.querySelector('[name="message"]');
       const kvkkConsent = form.querySelector('[name="kvkk"]');
       const submitBtn = form.querySelector('button[type="submit"]');
       const alertSuccess = form.querySelector('.alert-success');
       const alertError = form.querySelector('.alert-error');
 
-      // Önceden gelen hata durumlarını temizle
       clearErrors(form);
       if (alertSuccess) alertSuccess.style.display = 'none';
       if (alertError) alertError.style.display = 'none';
@@ -122,11 +139,10 @@ function initForms() {
         }
       }
 
-      // Telefon Kontrolü (Türkiye formatı: 05xx veya 5xx)
+      // Telefon Kontrolü (Türkiye: 05xx veya 5xx)
       if (phoneInput) {
-        const phoneVal = phoneInput.value.replace(/\s+/g, '').replace(/-/g, '');
-        const phoneRegex = /^(05|5)[0-9]{9}$/;
-        if (!phoneRegex.test(phoneVal)) {
+        const digits = phoneInput.value.replace(/\D/g, '');
+        if (digits.length < 10 || (!digits.startsWith('05') && !digits.startsWith('5'))) {
           showError(phoneInput, 'Lütfen geçerli bir cep telefonu numarası girin (Örn: 0553 935 03 17).');
           isValid = false;
         }
@@ -142,24 +158,25 @@ function initForms() {
 
       // KVKK Onay Kontrolü
       if (kvkkConsent && !kvkkConsent.checked) {
-        showError(kvkkConsent, 'Randevu oluşturabilmek için KVKK Aydınlatma Metnini onaylamanız gerekmektedir.');
+        showError(kvkkConsent, 'Randevu oluşturabilmek için KVKK metnini onaylamanız gerekmektedir.');
         isValid = false;
       }
 
       if (!isValid) {
         if (alertError) {
           alertError.textContent = 'Lütfen formdaki işaretli alanları kontrol ediniz.';
-          alertError.style.display = 'flex';
+          alertError.style.display = 'block';
+          alertError.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
         return;
       }
 
-      // Başarılı doğrulama: Gönderim durumunu yönet (Loading State)
+      // Buton Yükleme Durumu
       const originalBtnText = submitBtn ? submitBtn.innerHTML : 'Gönder';
       if (submitBtn) {
         submitBtn.disabled = true;
         submitBtn.innerHTML = `
-          <svg style="animation: spin 1s linear infinite; width:18px; height:18px; margin-right:8px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <svg style="animation: spin 0.8s linear infinite; width:16px; height:16px; margin-right:6px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <circle cx="12" cy="12" r="10" stroke-opacity="0.25"></circle>
             <path d="M12 2a10 10 0 0 1 10 10"></path>
           </svg>
@@ -167,37 +184,36 @@ function initForms() {
         `;
       }
 
-      // Simüle edilen işlem süresi (Güvenli asenkron akış)
       setTimeout(() => {
         if (submitBtn) {
           submitBtn.disabled = false;
           submitBtn.innerHTML = originalBtnText;
         }
 
-        // Başarılı Ekranı Göster
         if (alertSuccess) {
           const clientName = nameInput ? nameInput.value.trim() : 'Danışan';
-          const selectedService = serviceSelect ? serviceSelect.options[serviceSelect.selectedIndex]?.text : '';
+          const selectedService = serviceSelect && serviceSelect.selectedIndex >= 0 ? serviceSelect.options[serviceSelect.selectedIndex]?.text : 'Psikolojik Danışmanlık';
           
           alertSuccess.innerHTML = `
             <div>
-              <strong>Teşekkürler, ${escapeHTML(clientName)}!</strong>
-              <p style="margin:0.25rem 0 0 0; font-size: 0.875rem;">
-                Randevu talebiniz başarıyla alındı. Klinik asistanımız en kısa sürede randevu takvimini netleştirmek üzere sizinle iletişime geçecektir.
+              <strong style="font-size: 1rem; color: #125732;">Teşekkürler, Sayın ${escapeHTML(clientName)}!</strong>
+              <p style="margin: 0.35rem 0 0.75rem 0; font-size: 0.875rem; color: #125732;">
+                Randevu talebiniz kliniğimize başarıyla ulaştı. Asistanımız uygun seans saatlerini teyit etmek için gün içinde sizinle iletişime geçecektir.
               </p>
-              <div style="margin-top:0.75rem;">
-                <a href="https://wa.me/905539350317?text=${encodeURIComponent(`Merhaba Psikolog Şeyma Meriç Hanım, web sitenizden randevu talebi oluşturdum. İsmim: ${clientName}. Terapi alanı: ${selectedService}`)}" 
+              <div>
+                <a href="https://wa.me/905539350317?text=${encodeURIComponent(`Merhaba Psikolog Şeyma Meriç Hanım, sitenizden randevu talebi oluşturdum. İsmim: ${clientName}. Terapi konusu: ${selectedService}`)}" 
                    target="_blank" rel="noopener noreferrer" class="btn btn-whatsapp btn-sm">
-                  WhatsApp Üzerinden Hızlıca Teyit Edin
+                  WhatsApp ile Hızlıca Teyit Edin &rarr;
                 </a>
               </div>
             </div>
           `;
           alertSuccess.style.display = 'block';
+          alertSuccess.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
 
         form.reset();
-      }, 700);
+      }, 600);
     });
   });
 }
@@ -239,7 +255,7 @@ function escapeHTML(str) {
 }
 
 /**
- * 4. Header Scroll Shadow Efekti
+ * 5. Header Scroll Efekti
  */
 function initHeaderScroll() {
   const header = document.querySelector('.site-header');
@@ -247,9 +263,9 @@ function initHeaderScroll() {
 
   window.addEventListener('scroll', () => {
     if (window.scrollY > 20) {
-      header.style.boxShadow = '0 4px 20px rgba(0, 0, 0, 0.08)';
+      header.style.boxShadow = '0 2px 10px rgba(0, 0, 0, 0.05)';
     } else {
-      header.style.boxShadow = 'var(--shadow-sm)';
+      header.style.boxShadow = 'none';
     }
   }, { passive: true });
 }
