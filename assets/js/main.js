@@ -20,24 +20,30 @@ function initSplashScreen() {
   const splash = document.getElementById('splashScreen');
   if (!splash) return;
 
-  const isReload = window.performance && 
-    window.performance.getEntriesByType && 
-    window.performance.getEntriesByType('navigation')[0] && 
-    window.performance.getEntriesByType('navigation')[0].type === 'reload';
+  // Navigasyon tipini belirle (reload mu, site-içi mi, ilk ziyaret mi)
+  let navType = 'navigate';
+  try {
+    const navEntry = window.performance &&
+      window.performance.getEntriesByType &&
+      window.performance.getEntriesByType('navigation')[0];
+    if (navEntry && navEntry.type) {
+      navType = navEntry.type; // 'navigate' | 'reload' | 'back_forward'
+    }
+  } catch (e) {}
 
-  // Site içi gezinmeyle (örneğin Hakkımda'dan Anasayfa'ya tıklandığında) gelindiyse gösterme
-  const isInternalTransition = sessionStorage.getItem('psk_first_visit_done') === 'true' && !isReload;
+  const alreadyVisited = sessionStorage.getItem('psk_visited') === '1';
 
-  if (isInternalTransition) {
+  // Sadece site içi link navigasyonunda (back/forward hariç) ve önceki ziyaret varsa atla
+  const isInternalNav = alreadyVisited && navType === 'navigate';
+
+  if (isInternalNav) {
     splash.classList.add('is-hidden');
     if (splash.parentNode) splash.parentNode.removeChild(splash);
     return;
   }
 
-  // İlk giriş veya sayfa yenileme: Oturumu işaretle
-  try {
-    sessionStorage.setItem('psk_first_visit_done', 'true');
-  } catch (e) {}
+  // İlk ziyaret, reload veya back/forward: splash'i göster, ziyareti kaydet
+  try { sessionStorage.setItem('psk_visited', '1'); } catch (e) {}
 
   let dismissed = false;
   function dismissSplash() {
@@ -59,8 +65,8 @@ function initSplashScreen() {
     });
   }
 
-  // 2600ms (~2.6 saniye) sonra yumuşakça kaybol
-  setTimeout(dismissSplash, 2600);
+  // 2800ms sonra yumuşakça kaybol
+  setTimeout(dismissSplash, 2800);
 }
 
 
