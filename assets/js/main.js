@@ -4,11 +4,65 @@
  */
 
 document.addEventListener('DOMContentLoaded', () => {
+  initSplashScreen();
   initMobileNav();
   initFaqAccordion();
   initHeaderScroll();
   initMapFacade();
 });
+
+/**
+ * 0. Açılış Karşılama Ekranı (Splash Screen)
+ * Sadece ilk siteye girildiğinde veya sayfa yenilendiğinde (reload) gösterilir.
+ * Sayfalar arasında gezinirken tekrar açılmaz.
+ */
+function initSplashScreen() {
+  const splash = document.getElementById('splashScreen');
+  if (!splash) return;
+
+  const isReload = window.performance && 
+    window.performance.getEntriesByType && 
+    window.performance.getEntriesByType('navigation')[0] && 
+    window.performance.getEntriesByType('navigation')[0].type === 'reload';
+
+  // Site içi gezinmeyle (örneğin Hakkımda'dan Anasayfa'ya tıklandığında) gelindiyse gösterme
+  const isInternalTransition = sessionStorage.getItem('psk_first_visit_done') === 'true' && !isReload;
+
+  if (isInternalTransition) {
+    splash.classList.add('is-hidden');
+    if (splash.parentNode) splash.parentNode.removeChild(splash);
+    return;
+  }
+
+  // İlk giriş veya sayfa yenileme: Oturumu işaretle
+  try {
+    sessionStorage.setItem('psk_first_visit_done', 'true');
+  } catch (e) {}
+
+  let dismissed = false;
+  function dismissSplash() {
+    if (dismissed) return;
+    dismissed = true;
+    splash.classList.add('is-hidden');
+    setTimeout(() => {
+      if (splash.parentNode) splash.parentNode.removeChild(splash);
+    }, 600);
+  }
+
+  // Tıklanırsa veya dokunulursa anında geçiş
+  splash.addEventListener('click', dismissSplash);
+  const skipBtn = splash.querySelector('.splash-skip-btn');
+  if (skipBtn) {
+    skipBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      dismissSplash();
+    });
+  }
+
+  // 2600ms (~2.6 saniye) sonra yumuşakça kaybol
+  setTimeout(dismissSplash, 2600);
+}
+
 
 /**
  * 1. Mobil Navigasyon ve Menü Çekmecesi (Erişilebilir Focus Trap & Otomatik Kapanma)
