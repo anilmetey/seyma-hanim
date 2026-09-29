@@ -2654,10 +2654,32 @@ textarea.form-control {
   }
   .hero-grid {
     grid-template-columns: 1fr;
-    gap: var(--space-8);
+    gap: var(--space-6);
+  }
+  /* Mobilde resim üste, yazılar alta */
+  .hero-image-wrap {
+    order: -1;
+  }
+  .hero-text {
+    order: 0;
+    text-align: center;
+  }
+  .hero-badge {
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .hero-description {
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .hero-actions {
+    justify-content: center;
+  }
+  .hero-trust-list {
+    justify-content: center;
   }
   .hero-image-card img {
-    height: 380px;
+    height: 340px;
   }
   .bio-grid {
     grid-template-columns: 1fr;
@@ -2991,6 +3013,10 @@ textarea.form-control {
   .splash-skip-btn {
     font-size: 0.74rem;
     padding: 0.35rem 0.85rem;
+  }
+  /* Hero görsel küçük telefonlarda */
+  .hero-image-card img {
+    height: 270px;
   }
 }
 
